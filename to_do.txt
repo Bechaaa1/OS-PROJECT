@@ -1,7 +1,0 @@
-make sure E/S and calcul are treated differently
-if 2 has the same priority 
-add priority AGING
-change to enter and exit
-add an interface graphique with a menu
-add a readme
-use https://www.gtk.org/
