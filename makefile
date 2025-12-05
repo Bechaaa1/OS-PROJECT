@@ -1,43 +1,63 @@
-CC      = gcc
-CFLAGS  = -Wall -Wextra -Wpedantic -std=c11
-GTK     = $(shell pkg-config --cflags --libs gtk4)
+CC = gcc
+CFLAGS = -Wall `pkg-config --cflags gtk+-3.0`
+LIBS = `pkg-config --libs gtk+-3.0`
 
-SRC_DIR = src
-POL_DIR = policies
-GUI_DIR = gui
-OBJ_DIR = obj
+# Dossier de build
+BUILD_DIR = build
 
-SRCS = $(wildcard $(SRC_DIR)/*.c)
-POLS = $(wildcard $(POL_DIR)/*.c)
-GUIS = $(wildcard $(GUI_DIR)/*.c)
+# Fichiers sources de l'interface
+SRC = src/main.c \
+      gui/gui.c \
+      gui/menu.c \
+      gui/liste.c \
+      gui/tabs.c \
+      src/run_algorithm.c \
+      gui/gui_builder.c
 
-OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS)) \
-       $(patsubst $(POL_DIR)/%.c,$(OBJ_DIR)/%.o,$(POLS)) \
-       $(patsubst $(GUI_DIR)/%.c,$(OBJ_DIR)/%.o,$(GUIS))
+# Objets générés dans build/
+OBJ = $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRC))
 
-TARGET = scheduler_gui
+# --- DÉTECTION AUTOMATIQUE DES POLICIES ---
+# Trouve tous les .c dans policies/ et génère les noms d'exécutables dans build/
+POLICY_SRC = $(filter-out %_utils.c policies/_.c, $(wildcard policies/*.c))
+POLICIES = $(patsubst policies/%.c,$(BUILD_DIR)/%,$(POLICY_SRC))
 
-all: dirs $(TARGET)
+# Cible principale : tout compiler
+all: $(BUILD_DIR) ordonnanceur $(POLICIES)
 
-dirs:
-	@mkdir -p $(OBJ_DIR)
+# Créer le dossier build/ et ses sous-dossiers
+$(BUILD_DIR):
+	@mkdir -p $(BUILD_DIR)/src
+	@mkdir -p $(BUILD_DIR)/gui
 
-$(TARGET): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(GTK)
+# Compilation de l'interface graphique
+ordonnanceur: $(OBJ)
+	$(CC) $(OBJ) -o ordonnanceur $(LIBS)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) $(shell pkg-config --cflags gtk4) -Iinclude -Igui -c $< -o $@
+# --- RÈGLE GÉNÉRIQUE pour compiler les .c en .o dans build/ ---
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(POL_DIR)/%.c
-	$(CC) $(CFLAGS) $(shell pkg-config --cflags gtk4) -Iinclude -Igui -c $< -o $@
+# --- RÈGLE GÉNÉRIQUE pour compiler n'importe quelle policy dans build/ ---
+$(BUILD_DIR)/%: policies/%.c
+	@mkdir -p $(BUILD_DIR)
+	@echo "Compilation de $< → $@"
+	$(CC) -Wall $< -o $@
 
-$(OBJ_DIR)/%.o: $(GUI_DIR)/%.c
-	$(CC) $(CFLAGS) $(shell pkg-config --cflags gtk4) -Iinclude -Igui -c $< -o $@
-
+# Nettoyage
 clean:
-	rm -rf $(OBJ_DIR) $(TARGET)
+	rm -rf $(BUILD_DIR) ordonnanceur
 
-run: all
-	./$(TARGET)
+# Recompilation complète
+rebuild: clean all
 
-.PHONY: all clean run dirs
+# Afficher les policies détectées (utile pour debug)
+show-policies:
+	@echo "Fichiers sources détectés :"
+	@echo "$(POLICY_SRC)"
+	@echo ""
+	@echo "Exécutables à générer :"
+	@echo "$(POLICIES)"
+
+.PHONY: all clean rebuild show-policies

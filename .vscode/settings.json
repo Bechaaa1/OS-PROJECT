@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "types.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "gui_tabs.C": "cpp",
+        "stats_view.C": "cpp"
     }
 }
