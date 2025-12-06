@@ -23,11 +23,6 @@ Simulateur d'algorithmes d'ordonnancement de processus avec interface graphique 
   - Temps de rotation moyen
   - Temps d'attente moyen
   - Support parallèle CPU/E-S
-
-## 📸 Captures d'écran
-
-*(À ajouter : screenshots de ton application)*
-
 ## 🚀 Installation
 
 ### Prérequis
