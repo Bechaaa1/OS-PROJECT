@@ -12,6 +12,7 @@ Simulateur d'algorithmes d'ordonnancement de processus avec interface graphique 
   - 🔹 FIFO (First In, First Out)
   - 🔹 Round Robin (avec quantum configurable)
   - 🔹 SRT (Shortest Remaining Time - préemptif)
+    - 🔹 Preemptive Priority
 
 - **Interface graphique moderne** :
   - Thème sombre élégant
@@ -104,7 +105,8 @@ OS-PROJECT/
 ├── policies/
 │   ├── fifo.c             # Algorithme FIFO
 │   ├── rr.c               # Algorithme Round Robin
-│   └── srt.c              # Algorithme SRT
+│   |── srt.c              # Algorithme SRT
+|   └── PremptivePriority.c  # Algorithme PP
 ├── src/
 │   ├── main.c             # Point d'entrée
 │   └── run_algorithm.c    # Exécution des algorithmes
@@ -153,6 +155,11 @@ POLICIES = $(POLICY_SRC:.c=)
 - Préemptif
 - Optimal pour temps d'attente moyen
 - Favorise les courts jobs
+### Priority Preemptive
+- Préemptif basé sur priorité
+- Processus haute priorité interrompt les autres
+- Risque de famine pour basses priorités
+
 
 ## 🧪 Tests
 ```bash
