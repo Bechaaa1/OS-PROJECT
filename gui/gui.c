@@ -1,5 +1,6 @@
 // gui.c — Contrôleur (Controller) : Logique et callbacks
 #include <gtk/gtk.h>
+#define DEFAULT_QUANTUM 2 
 
 // Déclarations externes (depuis d'autres fichiers)
 char **detect_algorithms(int *count);     // liste.c
@@ -8,8 +9,7 @@ void start_gantt_diagram(void);           // tabs.c
 void reset_gantt_diagram(void);           // tabs.c
 void refresh_statistics(void);            // stats.c  ← AJOUTER
 void reset_statistics(void);              // stats.c  ← AJOUTER
-
-
+const char* get_input_file(void);         // run_algorithm.c  ← AJOUTER
 // Widgets globaux (utilisés par gui_builder.c et ce fichier)
 GtkWidget *entry_quantum = NULL;
 GtkWidget *box_quantum_container = NULL;
@@ -104,7 +104,7 @@ void on_refresh_clicked(GtkButton *btn, gpointer combo_ptr)
    - Lance l'algorithme sélectionné
    - Affiche le diagramme de Gantt
    ============================================================ */
-void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
+   void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
 {
     GtkComboBoxText *combo = GTK_COMBO_BOX_TEXT(combo_ptr);
     char *algo = gtk_combo_box_text_get_active_text(combo);
@@ -116,7 +116,7 @@ void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
         return;
     }
 
-    int quantum = 0;
+    int quantum = DEFAULT_QUANTUM;
 
     // Si Round Robin, vérifier le quantum
     if (g_ascii_strcasecmp(algo, "rr") == 0 || 
@@ -124,20 +124,19 @@ void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
         
         const char *q = gtk_entry_get_text(GTK_ENTRY(entry_quantum));
         
-        if (!q || !*q) {
-            g_print("\n❌ Erreur : Quantum manquant pour Round Robin !\n");
-            g_print("   Veuillez entrer une valeur (ex: 2, 5, 10).\n\n");
-            g_free(algo);
-            return;
-        }
-        
-        quantum = atoi(q);
-        
-        if (quantum <= 0) {
-            g_print("\n❌ Erreur : Quantum invalide (%d) !\n", quantum);
-            g_print("   Le quantum doit être un entier positif.\n\n");
-            g_free(algo);
-            return;
+        if (!q || !*q || strlen(q) == 0) {
+            // Quantum par défaut si vide
+            quantum = 2;
+            g_print("ℹ Quantum non spécifié, utilisation de la valeur par défaut : %d\n", quantum);
+        } else {
+            quantum = atoi(q);
+            
+            if (quantum <= 0) {
+                g_print("\n❌ Erreur : Quantum invalide (%d) !\n", quantum);
+                g_print("   Le quantum doit être un entier positif.\n\n");
+                g_print("ℹ Utilisation du quantum par défaut : 2\n");
+                quantum = 2;  // Valeur par défaut même en cas d'erreur
+            }
         }
     }
 
@@ -146,7 +145,8 @@ void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
     g_print("→ Démarrage de %s", algo);
     if (quantum > 0)
         g_print(" (quantum=%d)", quantum);
-    g_print("\n========================================\n");
+    g_print("\n→ Fichier d'entrée : %s\n", get_input_file());
+    g_print("========================================\n");
     
     run_algorithm(algo, quantum);
     
@@ -154,7 +154,7 @@ void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
     start_gantt_diagram();
     
     g_print("→ Chargement des statistiques...\n");
-    refresh_statistics();  // ← AJOUTER CETTE LIGNE
+    refresh_statistics();
     
     g_free(algo);
 }

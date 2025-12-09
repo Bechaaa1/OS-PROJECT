@@ -275,7 +275,7 @@ GtkWidget* build_control_panel(GtkWidget **combo_out)
     gtk_box_pack_start(GTK_BOX(box_quantum_container), label_quantum, FALSE, FALSE, 0);
 
     entry_quantum = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_quantum), "Ex: 2");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(entry_quantum), "Défaut: 2");
     gtk_widget_set_size_request(entry_quantum, 80, -1);
     gtk_box_pack_start(GTK_BOX(box_quantum_container), entry_quantum, FALSE, FALSE, 0);
     
