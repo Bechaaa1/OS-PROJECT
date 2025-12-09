@@ -6,15 +6,16 @@ LIBS = `pkg-config --libs gtk+-3.0`
 BUILD_DIR = build
 
 # Fichiers sources de l'interface
+# Fichiers sources de l'interface
 SRC = src/main.c \
       gui/gui.c \
       gui/menu.c \
       gui/liste.c \
       gui/tabs.c \
+      gui/stats.c \
       src/run_algorithm.c \
       gui/gui_builder.c
-
-# Objets générés dans build/
+	  
 OBJ = $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRC))
 
 # --- DÉTECTION AUTOMATIQUE DES POLICIES ---

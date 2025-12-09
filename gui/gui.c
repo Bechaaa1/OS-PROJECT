@@ -6,6 +6,9 @@ char **detect_algorithms(int *count);     // liste.c
 void run_algorithm(const char *algo, int quantum);  // run_algorithm.c
 void start_gantt_diagram(void);           // tabs.c
 void reset_gantt_diagram(void);           // tabs.c
+void refresh_statistics(void);            // stats.c  ← AJOUTER
+void reset_statistics(void);              // stats.c  ← AJOUTER
+
 
 // Widgets globaux (utilisés par gui_builder.c et ce fichier)
 GtkWidget *entry_quantum = NULL;
@@ -58,6 +61,7 @@ void on_refresh_clicked(GtkButton *btn, gpointer combo_ptr)
     
     // Réinitialiser le diagramme et supprimer output.txt
     reset_gantt_diagram();
+    reset_statistics();  // ← AJOUTER CETTE LIGNE
 
     // Vider la combobox
     gtk_combo_box_text_remove_all(combo);
@@ -148,6 +152,9 @@ void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
     
     g_print("\n→ Chargement du diagramme de Gantt...\n");
     start_gantt_diagram();
+    
+    g_print("→ Chargement des statistiques...\n");
+    refresh_statistics();  // ← AJOUTER CETTE LIGNE
     
     g_free(algo);
 }

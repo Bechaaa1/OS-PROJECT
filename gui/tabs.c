@@ -363,19 +363,14 @@ GtkWidget* create_tabs(void)
     gtk_notebook_append_page(GTK_NOTEBOOK(notebook), page_diagram, tab_label1);
 
     /* ============================
-       Onglet 2 : Statistiques
-       ============================ */
-    GtkWidget *page_stats = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-    GtkWidget *lbl_stats = gtk_label_new("Statistiques à venir...");
-    gtk_widget_set_halign(lbl_stats, GTK_ALIGN_CENTER);
-    gtk_widget_set_valign(lbl_stats, GTK_ALIGN_CENTER);
-    gtk_box_pack_start(GTK_BOX(page_stats), lbl_stats, TRUE, TRUE, 0);
+   Onglet 2 : Statistiques
+   ============================ */
+    extern GtkWidget* create_stats_page(void);  // Déclaration de stats.c
+    GtkWidget *page_stats = create_stats_page();
 
     GtkWidget *tab_label2 = gtk_label_new("▣ Statistiques");
     gtk_notebook_append_page(GTK_NOTEBOOK(notebook), page_stats, tab_label2);
+    return notebook;  // ← AJOUTER CETTE LIGNE (elle manque !)
 
-    /* Affiche par défaut l'onglet Diagramme */
-    gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), 0);
 
-    return notebook;
-}
+    }
