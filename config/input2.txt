@@ -1,5 +1,5 @@
 / COMMENTAIRE
 quantum 5
 P1 0 3 3 4 1
-P2 1 6 2
+P2 1 6 2 2
 P3 2 1 12 2 3
