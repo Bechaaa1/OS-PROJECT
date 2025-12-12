@@ -17,8 +17,6 @@ static int max_slots = 0;
 static GtkWidget *drawing_area = NULL;
 static double animation_progress = 0.0;
 static guint animation_timer = 0;
-static gboolean show_cpu_utilization = TRUE;
-static double cpu_utilization = 0.0;
 
 static const double PI = 3.14159265358979323846;
 
@@ -38,27 +36,8 @@ static const Color COLOR_ACCENT = {0.30, 0.70, 1.0};
 static const Color COLOR_SUCCESS = {0.20, 0.80, 0.60};
 static const Color COLOR_WARNING = {1.0, 0.65, 0.25};
 
-/* Calculate CPU utilization */
-static void calculate_cpu_utilization(void) {
-    if (row_count == 0 || max_slots == 0) {
-        cpu_utilization = 0.0;
-        return;
-    }
-    
-    int total_slots = 0;
-    int active_slots = 0;
-    
-    for (int r = 0; r < row_count; r++) {
-        total_slots += rows[r].count;
-        for (int i = 0; i < rows[r].count; i++) {
-            if (strcmp(rows[r].slots[i], "NULL") != 0) {
-                active_slots++;
-            }
-        }
-    }
-    
-    cpu_utilization = total_slots > 0 ? (double)active_slots / total_slots * 100.0 : 0.0;
-}
+/* Forward declaration for draw_cpu_badge */
+static void draw_cpu_badge(cairo_t *cr, int x, int y);
 
 /* Load data from output.txt */
 static void load_output_file(const char *filename) {
@@ -100,8 +79,6 @@ static void load_output_file(const char *filename) {
         }
     }
     fclose(f);
-    
-    calculate_cpu_utilization();
 }
 
 /* Helper function for rounded rectangle */
@@ -168,67 +145,29 @@ static void draw_rounded_rect_with_glow(cairo_t *cr, double x, double y, double 
     cairo_stroke(cr);
 }
 
-/* Draw CPU utilization badge */
+/* Draw CPU badge */
 static void draw_cpu_badge(cairo_t *cr, int x, int y) {
-    if (!show_cpu_utilization) return;
+    const int badge_w = 140;
+    const int badge_h = 32;
     
-    draw_simple_rounded_rect(cr, x, y, 190, 58, 12);
-    cairo_pattern_t *bg_pat = cairo_pattern_create_linear(x, y, x, y + 58);
-    cairo_pattern_add_color_stop_rgba(bg_pat, 0, 0.10, 0.14, 0.20, 0.95);
-    cairo_pattern_add_color_stop_rgba(bg_pat, 1, 0.08, 0.12, 0.18, 0.95);
-    cairo_set_source(cr, bg_pat);
+    draw_simple_rounded_rect(cr, x, y, badge_w, badge_h, 8);
+    cairo_pattern_t *badge_pat = cairo_pattern_create_linear(x, y, x, y + badge_h);
+    cairo_pattern_add_color_stop_rgba(badge_pat, 0, 0.20, 0.50, 0.85, 0.25);
+    cairo_pattern_add_color_stop_rgba(badge_pat, 1, 0.15, 0.40, 0.75, 0.15);
+    cairo_set_source(cr, badge_pat);
     cairo_fill(cr);
-    cairo_pattern_destroy(bg_pat);
+    cairo_pattern_destroy(badge_pat);
     
-    draw_simple_rounded_rect(cr, x, y, 190, 58, 12);
-    cairo_set_source_rgba(cr, COLOR_BORDER.r, COLOR_BORDER.g, COLOR_BORDER.b, 0.5);
-    cairo_set_line_width(cr, 1.0);
-    cairo_stroke(cr);
-    
-    Color badge_color = cpu_utilization >= 70 ? COLOR_SUCCESS : 
-                        cpu_utilization >= 40 ? COLOR_WARNING : COLOR_ACCENT;
-    
-    for (int i = 4; i > 0; i--) {
-        cairo_arc(cr, x + 28, y + 29, 16 + i*2, 0, 2*PI);
-        cairo_set_source_rgba(cr, badge_color.r, badge_color.g, badge_color.b, 0.1 * (1.0 - i/4.0));
-        cairo_fill(cr);
-    }
-    
-    cairo_arc(cr, x + 28, y + 29, 16, 0, 2*PI);
-    cairo_set_source_rgba(cr, badge_color.r, badge_color.g, badge_color.b, 0.25);
-    cairo_fill(cr);
-    
-    cairo_set_source_rgb(cr, badge_color.r, badge_color.g, badge_color.b);
-    cairo_set_line_width(cr, 2.5);
-    cairo_rectangle(cr, x + 21, y + 22, 14, 14);
-    cairo_stroke(cr);
-    
-    for (int i = 0; i < 3; i++) {
-        cairo_move_to(cr, x + 18, y + 24 + i*4);
-        cairo_line_to(cr, x + 21, y + 24 + i*4);
-        cairo_move_to(cr, x + 35, y + 24 + i*4);
-        cairo_line_to(cr, x + 38, y + 24 + i*4);
-    }
+    draw_simple_rounded_rect(cr, x, y, badge_w, badge_h, 8);
+    cairo_set_source_rgba(cr, COLOR_ACCENT.r, COLOR_ACCENT.g, COLOR_ACCENT.b, 0.5);
     cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);
     
-    cairo_set_source_rgba(cr, COLOR_TEXT_MUTED.r, COLOR_TEXT_MUTED.g, COLOR_TEXT_MUTED.b, 0.9);
-    cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 11);
-    cairo_move_to(cr, x + 52, y + 22);
-    cairo_show_text(cr, "Utilisation CPU");
-    
-    cairo_set_source_rgba(cr, 0, 0, 0, 0.3);
+    cairo_set_source_rgba(cr, COLOR_ACCENT.r, COLOR_ACCENT.g, COLOR_ACCENT.b, 0.9);
     cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size(cr, 20);
-    char percent[16];
-    snprintf(percent, sizeof(percent), "%.1f%%", cpu_utilization);
-    cairo_move_to(cr, x + 53, y + 44);
-    cairo_show_text(cr, percent);
-    
-    cairo_set_source_rgb(cr, badge_color.r, badge_color.g, badge_color.b);
-    cairo_move_to(cr, x + 52, y + 43);
-    cairo_show_text(cr, percent);
+    cairo_set_font_size(cr, 11);
+    cairo_move_to(cr, x + 12, y + 20);
+    cairo_show_text(cr, "⚡ TEMPS RÉEL");
 }
 
 /* Draw timeline indicator */
@@ -522,8 +461,7 @@ void reset_gantt_diagram(void) {
     row_count = 0;
     max_slots = 0;
     animation_progress = 0.0;
-    cpu_utilization = 0.0;
-    
+
     if (remove("output.txt") == 0) {
         g_print("✓ Fichier output.txt supprimé\n");
     } else {
