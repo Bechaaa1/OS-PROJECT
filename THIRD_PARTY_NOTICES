@@ -1,0 +1,18 @@
+This software uses the following third-party libraries:
+
+GTK+ 3
+Copyright © The GTK Project
+Licensed under the GNU Lesser General Public License v2.1 or later.
+
+GLib
+Copyright © The GLib Project
+Licensed under the GNU Lesser General Public License v2.1 or later.
+
+Cairo
+Copyright © The Cairo Graphics Project
+Licensed under the GNU Lesser General Public License v2.1
+or Mozilla Public License 1.1.
+
+Standard C Library (glibc)
+Copyright © Free Software Foundation
+Licensed under the GNU Lesser General Public License v2.1 or later.
