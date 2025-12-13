@@ -173,3 +173,19 @@ echo -e "quantum 2\nP1 0 8 1" | ./policies/rr
 # Tester SRT
 echo "P1 0 8 1\nP2 1 4 2" > config/input.txt
 ./policies/srt < config/input.txt
+
+
+
+
+## Licence
+
+Ce projet est distribué sous la licence MIT.
+
+Il utilise des liens dynamiques avec les bibliothèques suivantes :
+- GTK+ 3
+- GLib
+- Cairo
+- Bibliothèque C GNU (glibc)
+
+Ces bibliothèques sont distribuées sous la licence GNU Lesser General Public License (LGPL) version 2.1 ou ultérieure.
+Aucune modification n’a été apportée à leur code source.
