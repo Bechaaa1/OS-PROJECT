@@ -1,0 +1,4 @@
+/ COMMENTAIRE
+P1 0 3 3 4 1
+P2 1 6 2 2
+                                                                

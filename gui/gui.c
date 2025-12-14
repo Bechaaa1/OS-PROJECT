@@ -1,5 +1,6 @@
 // gui.c — Contrôleur (Controller) : Logique et callbacks
 #include <gtk/gtk.h>
+#include <ctype.h>
 #define DEFAULT_QUANTUM 2 
 
 // Déclarations externes (depuis d'autres fichiers)
@@ -17,6 +18,27 @@ GtkWidget *entry_quantum = NULL;
 GtkWidget *box_quantum_container = NULL;
 
 /* ============================================================
+   FONCTION: Vérifier si un algorithme nécessite un quantum
+   ============================================================ */
+static int requires_quantum(const char *algo) {
+    if (!algo) return 0;
+    
+    /* Convertir en minuscules pour la comparaison */
+    char lower_algo[64];
+    int i;
+    for (i = 0; algo[i] && i < 63; i++) {
+        lower_algo[i] = tolower(algo[i]);
+    }
+    lower_algo[i] = '\0';
+    
+    /* Liste des algorithmes qui nécessitent un quantum */
+    return (g_ascii_strcasecmp(lower_algo, "rr") == 0 || 
+            g_ascii_strcasecmp(lower_algo, "roundrobin") == 0|| 
+            g_ascii_strcasecmp(lower_algo, "multilevel-aging-rr") == 0|| 
+            g_ascii_strcasecmp(lower_algo, "multilevel") == 0);
+}
+
+/* ============================================================
    LOGIQUE: Afficher/cacher le champ quantum selon l'algorithme
    ============================================================ */
 void update_quantum_state(const char *algo)
@@ -26,9 +48,8 @@ void update_quantum_state(const char *algo)
         return;
     }
     
-    // RR (Round Robin) nécessite un quantum
-    if (g_ascii_strcasecmp(algo, "rr") == 0 || 
-        g_ascii_strcasecmp(algo, "roundrobin") == 0) {
+    /* Afficher le champ quantum uniquement pour RR */
+    if (requires_quantum(algo)) {
         gtk_widget_show(box_quantum_container);
     } else {
         gtk_widget_hide(box_quantum_container);
@@ -118,35 +139,35 @@ void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
         return;
     }
 
-    int quantum = DEFAULT_QUANTUM;
+    int quantum = 0;  // Par défaut, 0 pour les algos qui n'en ont pas besoin
 
-    // Si Round Robin, vérifier le quantum
-    if (g_ascii_strcasecmp(algo, "rr") == 0 || 
-        g_ascii_strcasecmp(algo, "roundrobin") == 0) {
-        
+    // Si l'algorithme nécessite un quantum (Round Robin)
+    if (requires_quantum(algo)) {
         const char *q = gtk_entry_get_text(GTK_ENTRY(entry_quantum));
         
         if (!q || !*q || strlen(q) == 0) {
-            quantum = 2;
+            quantum = DEFAULT_QUANTUM;
             g_print("ℹ Quantum non spécifié, utilisation de la valeur par défaut : %d\n", quantum);
         } else {
             quantum = atoi(q);
             
             if (quantum <= 0) {
                 g_print("\n❌ Erreur : Quantum invalide (%d) !\n", quantum);
-                g_print("   Le quantum doit être un entier positif.\n\n");
-                g_print("ℹ Utilisation du quantum par défaut : 2\n");
-                quantum = 2;
+                g_print("   Le quantum doit être un entier positif.\n");
+                g_print("ℹ Utilisation du quantum par défaut : %d\n", DEFAULT_QUANTUM);
+                quantum = DEFAULT_QUANTUM;
             }
         }
+        
+        g_print("→ Algorithme %s avec quantum=%d\n", algo, quantum);
+    } else {
+        g_print("→ Algorithme %s (pas de quantum requis)\n", algo);
     }
 
     // Exécuter l'algorithme
     g_print("\n========================================\n");
-    g_print("→ Démarrage de %s", algo);
-    if (quantum > 0)
-        g_print(" (quantum=%d)", quantum);
-    g_print("\n→ Fichier d'entrée : %s\n", get_input_file());
+    g_print("→ Démarrage de %s\n", algo);
+    g_print("→ Fichier d'entrée : %s\n", get_input_file());
     g_print("========================================\n");
     
     run_algorithm(algo, quantum);

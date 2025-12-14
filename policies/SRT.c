@@ -112,6 +112,10 @@ int main() {
     int process_count = 0;
     char line[256];
     int i;
+    // --- LECTURE DU QUANTUM (ignoré pour SRT, mais format compatible) ---
+    if (fgets(line, sizeof(line), stdin)) {
+        // On ignore simplement la ligne quantum si elle existe
+    }
 
     /* Lecture depuis stdin */
     while (fgets(line, sizeof(line), stdin)) {

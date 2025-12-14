@@ -67,57 +67,14 @@ int main() {
     int process_count = 0;
     char line[256];
     int i; 
-    int quantum = 0;
 
-    // --- LECTURE STDIN : QUANTUM PUIS PROCESSUS ---
     // La première ligne doit être "quantum X"
+    int quantum = 2;  // Valeur par défaut
+
+    // --- LECTURE DU QUANTUM (première ligne obligatoire) ---
     if (fgets(line, sizeof(line), stdin)) {
-        if (sscanf(line, "quantum %d", &quantum) != 1) {
-            // Si ce n'est pas "quantum X", on essaie de parser comme un processus
-            // (compatibilité si pas de quantum spécifié)
-            quantum = 2; // Valeur par défaut
-            
-            // Traiter cette ligne comme un processus
-            if (line[0] != '#' && line[0] != '/' && line[0] != '\n') {
-                char temp_name[10];
-                int temp_arrival;
-                
-                char* token = strtok(line, " \t\n");
-                if (token) {
-                    strcpy(temp_name, token);
-                    token = strtok(NULL, " \t\n");
-                    if (token) {
-                        temp_arrival = atoi(token);
-                        
-                        int numbers[MAX_BURSTS + 1];
-                        int count = 0;
-                        while ((token = strtok(NULL, " \t\n")) != NULL) {
-                            numbers[count++] = atoi(token);
-                        }
-                        
-                        if (count >= 2) {
-                            Process* p = &processes[process_count];
-                            strcpy(p->name, temp_name);
-                            p->arrival_time = temp_arrival;
-                            p->priority = numbers[count - 1];
-                            p->num_bursts = count - 1;
-                            p->total_duration = 0;
-                            
-                            for (i = 0; i < p->num_bursts; i++) {
-                                p->bursts[i] = numbers[i];
-                                p->total_duration += numbers[i];
-                            }
-                            
-                            p->current_burst_idx = 0;
-                            p->remaining_time = p->bursts[0];
-                            p->finished = 0;
-                            p->end_time = 0;
-                            
-                            process_count++;
-                        }
-                    }
-                }
-            }
+        if (sscanf(line, "quantum %d", &quantum) == 1) {
+            if (quantum <= 0) quantum = 2; // Sécurité
         }
     }
 
