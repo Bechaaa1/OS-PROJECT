@@ -68,7 +68,7 @@ int main() {
     Process processes[MAX_PROCESS];
     int process_count = 0;
     char line[256];
-    int i; // Déclaration compatible C89
+    int i; 
 
     // --- 1. LECTURE ET PARSING ---
     while (fgets(line, sizeof(line), stdin)) {

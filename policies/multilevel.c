@@ -120,7 +120,6 @@ int main(int argc, char *argv[]) {
         }
     }
     // --- LECTURE DES PROCESSUS ---
-   
         while (fgets(line, sizeof(line), stdin)) {
         if (line[0] == '#' || line[0] == '/' || line[0] == '\n' || line[0] == '\r') continue;
         if (strstr(line, "quantum") != NULL) continue;

@@ -1,3 +1,4 @@
-/ COMMENTAIRE
-P1 0 3 3 4 1
-P2 1 6 2 2
+/ TEST SRT 
+p1 0 8 5 1 1   
+p2 2 3 2 2 2  
+p3 3 1 1 3      

@@ -18,6 +18,7 @@ typedef struct {
     int finished;
     int end_time;
     int total_duration;
+    int waiting_time_cpu;  // Compteur d'attente en file CPU
 } Process;
 
 typedef struct Node {
@@ -67,8 +68,6 @@ int main() {
     int process_count = 0;
     char line[256];
     int i; 
-
-    // La première ligne doit être "quantum X"
     int quantum = 2;  // Valeur par défaut
 
     // --- LECTURE DU QUANTUM (première ligne obligatoire) ---
@@ -78,7 +77,7 @@ int main() {
         }
     }
 
-    // Lire le reste des processus depuis stdin
+    // --- LECTURE DES PROCESSUS ---
     while (fgets(line, sizeof(line), stdin)) {
         if (line[0] == '#' || line[0] == '/' || line[0] == '\n' || line[0] == '\r') continue;
         if (strstr(line, "quantum") != NULL) continue;
@@ -118,6 +117,7 @@ int main() {
         p->remaining_time = p->bursts[0];
         p->finished = 0;
         p->end_time = 0;
+        p->waiting_time_cpu = 0;  // Initialisation
         
         process_count++;
     }
@@ -134,40 +134,58 @@ int main() {
     Process* active_io = NULL;
     int current_quantum_consumed = 0;
 
-    for(i=0; i<MAX_TIME; i++) {
+    // Initialisation de l'historique
+    for(i = 0; i < MAX_TIME; i++) {
         history_cpu[i] = "NULL";
         history_io[i] = "NULL";
     }
 
     while (processes_finished < process_count && time < MAX_TIME) {
         
-        // A. Vérifier les arrivées
+        // ========================================
+        // A. ARRIVÉES
+        // ========================================
         for (i = 0; i < process_count; i++) {
             if (processes[i].arrival_time == time) {
                 enqueue(&cpuQ, &processes[i]);
             }
         }
 
-        // B. GESTION CPU
+        // ========================================
+        // B. SÉLECTION (Phase 1) - AVANT exécution
+        // ========================================
+        
         if (active_cpu == NULL && !isQueueEmpty(&cpuQ)) {
             active_cpu = dequeue(&cpuQ);
             current_quantum_consumed = 0;
         }
 
+        if (active_io == NULL && !isQueueEmpty(&ioQ)) {
+            active_io = dequeue(&ioQ);
+        }
+
+        // ========================================
+        // C. EXÉCUTION (Phase 2) - APRÈS sélection
+        // ========================================
+
+        // GESTION CPU
         if (active_cpu != NULL) {
             history_cpu[time] = active_cpu->name;
             active_cpu->remaining_time--;
             current_quantum_consumed++;
 
             if (active_cpu->remaining_time == 0) {
+                // Burst CPU terminé
                 active_cpu->current_burst_idx++;
                 
                 if (active_cpu->current_burst_idx >= active_cpu->num_bursts) {
+                    // Processus terminé
                     active_cpu->finished = 1;
-                    active_cpu->end_time = time + 1; 
+                    active_cpu->end_time = time + 1;
                     processes_finished++;
                     active_cpu = NULL;
                 } else {
+                    // Passer en E/S
                     active_cpu->remaining_time = active_cpu->bursts[active_cpu->current_burst_idx];
                     enqueue(&ioQ, active_cpu);
                     active_cpu = NULL;
@@ -175,35 +193,53 @@ int main() {
                 current_quantum_consumed = 0;
             }
             else if (current_quantum_consumed == quantum) {
+                // Quantum atteint
                 enqueue(&cpuQ, active_cpu);
                 active_cpu = NULL;
                 current_quantum_consumed = 0;
             }
         }
 
-        // C. GESTION E/S
-        if (active_io == NULL && !isQueueEmpty(&ioQ)) {
-            active_io = dequeue(&ioQ);
-        }
-
+        // GESTION E/S
         if (active_io != NULL) {
             history_io[time] = active_io->name;
             active_io->remaining_time--;
 
             if (active_io->remaining_time == 0) {
+                // Burst E/S terminé
                 active_io->current_burst_idx++;
                 
                 if (active_io->current_burst_idx >= active_io->num_bursts) {
+                    // Processus terminé
                     active_io->finished = 1;
                     active_io->end_time = time + 1;
                     processes_finished++;
                     active_io = NULL;
                 } else {
+                    // Retour vers CPU
                     active_io->remaining_time = active_io->bursts[active_io->current_burst_idx];
                     enqueue(&cpuQ, active_io);
                     active_io = NULL;
                 }
             }
+        }
+
+        // ========================================
+        // D. CALCUL DU TEMPS D'ATTENTE (Logique corrigée)
+        // ========================================
+        // Tous les processus en file CPU attendent, sauf le premier si le CPU est libre
+        Node* currNode = cpuQ.head;
+        while(currNode != NULL) {
+            if (active_cpu != NULL) {
+                // Si le CPU est occupé, tout le monde attend
+                currNode->p->waiting_time_cpu++;
+            } else {
+                // Si le CPU est libre, le premier ne compte pas (il va être pris)
+                if (currNode != cpuQ.head) {
+                    currNode->p->waiting_time_cpu++;
+                }
+            }
+            currNode = currNode->next;
         }
 
         time++;
@@ -229,8 +265,13 @@ int main() {
 
     for (i = 0; i < process_count; i++) {
         Process *p = &processes[i];
+        
+        // Temps de rotation = Fin - Arrivée
         int rotation = p->end_time - p->arrival_time;
-        int attente = rotation - p->total_duration;
+        
+        // Temps d'attente = compteur d'attente CPU
+        int attente = p->waiting_time_cpu;
+
         total_rotation += rotation;
         total_attente += attente;
     }
@@ -238,6 +279,8 @@ int main() {
     if (process_count > 0) {
         printf("Temps de rotation moyen : %.2f\n", total_rotation / process_count);
         printf("Temps d'attente moyen : %.2f\n", total_attente / process_count);
+    } else {
+        printf("Aucun processus traité.\n");
     }
 
     return 0;
