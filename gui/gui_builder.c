@@ -1,7 +1,5 @@
-// gui_builder.c — Vue (View) : Création des widgets et styles
 #include <gtk/gtk.h>
 
-// Déclarations externes (depuis gui.c)
 extern GtkWidget *entry_quantum;
 extern GtkWidget *box_quantum_container;
 
@@ -10,10 +8,6 @@ void on_refresh_clicked(GtkButton *btn, gpointer combo_ptr);
 void on_start_clicked(GtkButton *btn, gpointer combo_ptr);
 void update_quantum_state(const char *algo);
 char **detect_algorithms(int *count);
-
-/* ============================================================
-   STYLES CSS - Thème moderne sombre
-   ============================================================ */
 void apply_app_styles(void)
 {
     GtkCssProvider *css = gtk_css_provider_new();
@@ -23,7 +17,6 @@ void apply_app_styles(void)
         "   color:#E8F0FF;"
         "}"
         
-        /* Header */
         "headerbar {"
         "   background-color:#1A2332;"
         "   color:#58C4FF;"
@@ -34,13 +27,11 @@ void apply_app_styles(void)
         "   color:#58C4FF;"
         "}"
         
-        /* Labels et Box */
         "label, box {"
         "   background-color:transparent;"
         "   color:#E8F0FF;"
         "}"
         
-        /* Frame */
         "frame {"
         "   background-color:transparent;"
         "   color:#E8F0FF;"
@@ -55,7 +46,6 @@ void apply_app_styles(void)
         "   font-weight:500;"
         "}"
 
-        /* ComboBox */
         "combobox button {"
         "   background:#2A3B52;"
         "   color:#E8F0FF;"
@@ -69,7 +59,6 @@ void apply_app_styles(void)
         "   border-color:#4A6280;"
         "}"
         
-        /* ComboBox popup menu */
         "combobox > window.popup, "
         "combobox > window.popup > * {"
         "   background-color:#2A3B52;"
@@ -98,7 +87,6 @@ void apply_app_styles(void)
         "   color:#58C4FF;"
         "}"
 
-        /* Bouton Refresh (gris) */
         "#btn_refresh, #btn_refresh * {"
         "   background:#2A3B52;"
         "   color:#8BA3C7;"
@@ -118,7 +106,6 @@ void apply_app_styles(void)
         "   color:#A8C0E0;"
         "}"
 
-        /* Bouton START (vert) */
         "#btn_start, #btn_start * {"
         "   background:#2ECC71;"
         "   color:white;"
@@ -137,7 +124,7 @@ void apply_app_styles(void)
         "   box-shadow:0 3px 12px rgba(46,204,113,0.4);"
         "}"
 
-        /* Entry */
+        
         "entry {"
         "   background:#2A3B52;"
         "   color:#E8F0FF;"
@@ -151,7 +138,6 @@ void apply_app_styles(void)
         "   box-shadow:0 0 0 2px rgba(88,196,255,0.2);"
         "}"
         
-        /* Notebook (Onglets) */
         "notebook {"
         "   background:#0F1419;"
         "   border:1px solid #2A3B52;"
@@ -209,23 +195,18 @@ void apply_app_styles(void)
     );
 }
 
-/* ============================================================
-   WIDGET: Header avec titre et sous-titre
-   ============================================================ */
 GtkWidget* build_header(void)
 {
     GtkWidget *header = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
     gtk_widget_set_name(header, "custom_header");
     gtk_container_set_border_width(GTK_CONTAINER(header), 20);
 
-    // Titre principal
     GtkWidget *title = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(title),
         "<span font='24' weight='bold' foreground='#58C4FF'>Ordonnanceur Multi-tâche</span>");
     gtk_widget_set_halign(title, GTK_ALIGN_START);
     gtk_box_pack_start(GTK_BOX(header), title, FALSE, FALSE, 0);
 
-    // Sous-titre
     GtkWidget *subtitle = gtk_label_new("Simulation d'ordonnancement de processus sous Linux");
     gtk_widget_set_halign(subtitle, GTK_ALIGN_START);
     gtk_box_pack_start(GTK_BOX(header), subtitle, FALSE, FALSE, 0);
@@ -233,41 +214,32 @@ GtkWidget* build_header(void)
     return header;
 }
 
-/* ============================================================
-   WIDGET: Panneau de contrôle (boutons + combo + quantum)
-   ============================================================ */
 GtkWidget* build_control_panel(GtkWidget **combo_out)
 {
     GtkWidget *control_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
 
-    // --- Bouton START (Démarrer) ---
     GtkWidget *btn_start = gtk_button_new_with_label("▶ Démarrer");
     gtk_widget_set_name(btn_start, "btn_start");
     gtk_button_set_relief(GTK_BUTTON(btn_start), GTK_RELIEF_NONE);
     gtk_widget_set_size_request(btn_start, 140, 40);
     gtk_box_pack_start(GTK_BOX(control_box), btn_start, FALSE, FALSE, 0);
 
-    // --- Bouton Refresh (Réinitialiser) ---
     GtkWidget *btn_refresh = gtk_button_new_with_label("↻ Réinitialiser");
     gtk_widget_set_name(btn_refresh, "btn_refresh");
     gtk_button_set_relief(GTK_BUTTON(btn_refresh), GTK_RELIEF_NONE);
     gtk_widget_set_size_request(btn_refresh, 140, 40);
     gtk_box_pack_start(GTK_BOX(control_box), btn_refresh, FALSE, FALSE, 0);
 
-    // --- Spacer (pousse le reste à droite) ---
     GtkWidget *spacer = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_box_pack_start(GTK_BOX(control_box), spacer, TRUE, TRUE, 0);
 
-    // --- Label Politique ---
     GtkWidget *label_politique = gtk_label_new("Politique:");
     gtk_box_pack_start(GTK_BOX(control_box), label_politique, FALSE, FALSE, 0);
 
-    // --- ComboBox des algorithmes ---
     GtkWidget *combo = gtk_combo_box_text_new();
     gtk_widget_set_size_request(combo, 200, 40);
     gtk_box_pack_start(GTK_BOX(control_box), combo, FALSE, FALSE, 0);
 
-    // --- Quantum (caché par défaut) ---
     box_quantum_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
     gtk_box_pack_start(GTK_BOX(control_box), box_quantum_container, FALSE, FALSE, 0);
 
@@ -281,7 +253,6 @@ GtkWidget* build_control_panel(GtkWidget **combo_out)
     
     gtk_widget_hide(box_quantum_container);
 
-    // --- Chargement des algorithmes disponibles ---
     int count = 0, fifo_index = -1;
     char **algos = detect_algorithms(&count);
 
@@ -300,7 +271,6 @@ GtkWidget* build_control_panel(GtkWidget **combo_out)
         update_quantum_state("fifo");
     }
 
-    // --- Connexion des signaux ---
     g_signal_connect(combo, "changed", G_CALLBACK(on_algo_changed), NULL);
     g_signal_connect(btn_refresh, "clicked", G_CALLBACK(on_refresh_clicked), combo);
     g_signal_connect(btn_start, "clicked", G_CALLBACK(on_start_clicked), combo);
@@ -309,43 +279,32 @@ GtkWidget* build_control_panel(GtkWidget **combo_out)
     return control_box;
 }
 
-/* ============================================================
-   FONCTION PRINCIPALE: Construction de la fenêtre complète
-   ============================================================ */
 void show_main_window(GtkApplication *app)
 {
-    // Appliquer les styles
     apply_app_styles();
 
-    // Fenêtre principale
     GtkWidget *win = gtk_application_window_new(app);
     gtk_window_set_default_size(GTK_WINDOW(win), 1000, 600);
     gtk_container_set_border_width(GTK_CONTAINER(win), 0);
 
-    // Container principal
     GtkWidget *main_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(win), main_container);
 
-    // Header
     GtkWidget *header = build_header();
     gtk_box_pack_start(GTK_BOX(main_container), header, FALSE, FALSE, 0);
 
-    // Contenu principal
     GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
     gtk_container_set_border_width(GTK_CONTAINER(content), 20);
     gtk_box_pack_start(GTK_BOX(main_container), content, TRUE, TRUE, 0);
 
-    // Panneau de contrôle
     GtkWidget *combo;
     GtkWidget *control_box = build_control_panel(&combo);
     gtk_box_pack_start(GTK_BOX(content), control_box, FALSE, TRUE, 0);
 
-    // Onglets (Diagramme + Statistiques) - défini dans tabs.c
     extern GtkWidget* create_tabs(void);
     GtkWidget *tabs = create_tabs();
     gtk_box_pack_start(GTK_BOX(content), tabs, TRUE, TRUE, 10);
 
-    // Afficher la fenêtre
     gtk_widget_show_all(win);
     gtk_widget_hide(box_quantum_container);
 }

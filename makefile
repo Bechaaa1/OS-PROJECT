@@ -12,6 +12,7 @@ SRC = src/main.c \
       gui/liste.c \
       gui/tabs.c \
       gui/stats.c \
+	  gui/console_gantt.c \
       src/run_algorithm.c \
       gui/gui_builder.c
 

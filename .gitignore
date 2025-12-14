@@ -6,9 +6,9 @@ policies/srt
 policies/RR
 policies/SRT
 
+
 # Fichiers objets
 *.o
-
 # Fichiers de sortie
 output.txt
 
@@ -29,3 +29,6 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+
+*.pub

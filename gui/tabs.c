@@ -474,10 +474,16 @@ void reset_gantt_diagram(void) {
     
     g_print("✓ Diagramme réinitialisé\n");
 }
+static void on_notebook_realize(GtkWidget *notebook, gpointer user_data) {
+    gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), 0);
+    g_print("→ Onglet Diagramme activé par défaut\n");
+}
+// Modification à apporter dans la fonction create_tabs() de tabs.c
 
 GtkWidget* create_tabs(void) {
     GtkWidget *notebook = gtk_notebook_new();
 
+    // Page 1: Diagramme
     GtkWidget *page_diagram = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     
     GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
@@ -496,11 +502,20 @@ GtkWidget* create_tabs(void) {
     GtkWidget *tab_label1 = gtk_label_new("◈ Diagramme");
     gtk_notebook_append_page(GTK_NOTEBOOK(notebook), page_diagram, tab_label1);
 
+    // Page 2: Statistiques
     extern GtkWidget* create_stats_page(void);
     GtkWidget *page_stats = create_stats_page();
 
     GtkWidget *tab_label2 = gtk_label_new("▣ Statistiques");
+    
     gtk_notebook_append_page(GTK_NOTEBOOK(notebook), page_stats, tab_label2);
     
+    // Définir la page active
+    gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), 0);
+    
+    // Callback après réalisation du widget
+    g_signal_connect(notebook, "realize", G_CALLBACK(on_notebook_realize), NULL);
+    
+
     return notebook;
 }

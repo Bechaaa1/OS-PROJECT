@@ -7,9 +7,11 @@ char **detect_algorithms(int *count);     // liste.c
 void run_algorithm(const char *algo, int quantum);  // run_algorithm.c
 void start_gantt_diagram(void);           // tabs.c
 void reset_gantt_diagram(void);           // tabs.c
-void refresh_statistics(void);            // stats.c  ← AJOUTER
-void reset_statistics(void);              // stats.c  ← AJOUTER
-const char* get_input_file(void);         // run_algorithm.c  ← AJOUTER
+void refresh_statistics(void);            // stats.c
+void reset_statistics(void);              // stats.c
+const char* get_input_file(void);         // run_algorithm.c
+void display_gantt_in_console(void);      // console_gantt.c
+
 // Widgets globaux (utilisés par gui_builder.c et ce fichier)
 GtkWidget *entry_quantum = NULL;
 GtkWidget *box_quantum_container = NULL;
@@ -61,7 +63,7 @@ void on_refresh_clicked(GtkButton *btn, gpointer combo_ptr)
     
     // Réinitialiser le diagramme et supprimer output.txt
     reset_gantt_diagram();
-    reset_statistics();  // ← AJOUTER CETTE LIGNE
+    reset_statistics();
 
     // Vider la combobox
     gtk_combo_box_text_remove_all(combo);
@@ -102,9 +104,9 @@ void on_refresh_clicked(GtkButton *btn, gpointer combo_ptr)
    CALLBACK: Bouton Démarrer
    - Valide les entrées (algorithme, quantum si nécessaire)
    - Lance l'algorithme sélectionné
-   - Affiche le diagramme de Gantt
+   - Affiche le diagramme de Gantt (GUI + CONSOLE)
    ============================================================ */
-   void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
+void on_start_clicked(GtkButton *btn, gpointer combo_ptr)
 {
     GtkComboBoxText *combo = GTK_COMBO_BOX_TEXT(combo_ptr);
     char *algo = gtk_combo_box_text_get_active_text(combo);
@@ -125,7 +127,6 @@ void on_refresh_clicked(GtkButton *btn, gpointer combo_ptr)
         const char *q = gtk_entry_get_text(GTK_ENTRY(entry_quantum));
         
         if (!q || !*q || strlen(q) == 0) {
-            // Quantum par défaut si vide
             quantum = 2;
             g_print("ℹ Quantum non spécifié, utilisation de la valeur par défaut : %d\n", quantum);
         } else {
@@ -135,7 +136,7 @@ void on_refresh_clicked(GtkButton *btn, gpointer combo_ptr)
                 g_print("\n❌ Erreur : Quantum invalide (%d) !\n", quantum);
                 g_print("   Le quantum doit être un entier positif.\n\n");
                 g_print("ℹ Utilisation du quantum par défaut : 2\n");
-                quantum = 2;  // Valeur par défaut même en cas d'erreur
+                quantum = 2;
             }
         }
     }
@@ -150,11 +151,17 @@ void on_refresh_clicked(GtkButton *btn, gpointer combo_ptr)
     
     run_algorithm(algo, quantum);
     
-    g_print("\n→ Chargement du diagramme de Gantt...\n");
+    // Afficher le diagramme dans la console
+    display_gantt_in_console();
+    
+    g_print("→ Chargement du diagramme graphique...\n");
     start_gantt_diagram();
     
     g_print("→ Chargement des statistiques...\n");
     refresh_statistics();
+    
+    g_print("\n✓ Simulation terminée\n");
+    g_print("========================================\n\n");
     
     g_free(algo);
 }
